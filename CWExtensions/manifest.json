@@ -1,0 +1,49 @@
+﻿{
+  "$schema": "../schemas/manifestSchema.json",
+  "name": "Pos_CW_Extensibility",
+  "publisher": "Microsoft",
+  "version": "7.2.0",
+  "minimumPosVersion": "7.2.0.0",
+  "components": {
+    "extend": {
+      "requestHandlers": [
+        {
+          "modulePath": "Handlers/GetGiftReceiptsClientRequestHandlerExt"
+        }
+      ],
+      "triggers": [
+        {
+          "triggerType": "PreSetQuantity",
+          "modulePath": "TriggerHandlers/PreSetQuantityTriggerExt"
+        },
+        {
+          "triggerType": "PostSetQuantity",
+          "modulePath": "TriggerHandlers/PostSetQuantityTriggerExt"
+        },
+        {
+          "triggerType": "PreEndTransaction",
+          "modulePath": "TriggerHandlers/PreEndTransactionTriggerExt"
+        },
+        {
+          "triggerType": "PrePayment",
+          "modulePath": "TriggerHandlers/PrePaymentTriggerExt"
+        }
+      ]
+    },
+    "create": {
+      "operations": [
+        {
+          "operationId": "60001",
+          "operationRequestFactoryPath": "Operations/LargeQtyOp/LargeQuantityOperationRequestFactory",
+          "operationRequestHandlerPath": "Operations/LargeQtyOp/LargeQuantityOperationRequestHandler"
+        },
+        {
+          "operationId": "60002",
+          "operationRequestFactoryPath": "Operations/WeChatPayOp/WeChatPayOperationRequestFactory",
+          "operationRequestHandlerPath": "Operations/WeChatPayOp/WeChatPayOperationRequestHandler"
+        }
+      ]
+    }
+
+  }
+}
