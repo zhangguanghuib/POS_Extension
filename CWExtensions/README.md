@@ -2,7 +2,7 @@
 # Project Title
 
 This feature is implemented for some special industry like medicine, alcohol, tobacco and chemistry.  
-When client buy a large quantity of product, and the quantity exceed speficied in D365 Commerce back office, retail store cashier need manager approval to complete the transaction, otherwise the transaction can not complete.
+When client buy a large quantity of product, and if the quantity exceeds quantity limitation speficied in D365 Commerce back office, retail store cashier need manager approval to complete the transaction, otherwise the transaction can not complete.
 
 # How to use this solution
 
