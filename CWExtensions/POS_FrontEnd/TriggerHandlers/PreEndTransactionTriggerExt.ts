@@ -5,12 +5,9 @@ import LargeQuantityOperationRequest from "../Operations/LargeQtyOp/LargeQuantit
 import LargeQuantityOperationResponse from "../Operations/LargeQtyOp/LargeQuantityOperationResponse";
 import { ShowMessageDialogClientRequest, ShowMessageDialogClientResponse } from "PosApi/Consume/Dialogs";
 import { StringExtensions } from "PosApi/TypeExtensions";
-
 import { StoreOperations } from "../DataService/DataServiceRequests.g";
 
-
 export default class PreEndTransactionTriggerExt extends Triggers.PreEndTransactionTrigger {
-
      private static DIALOG_RESULT_YES: string = "yes";
      private static DIALOG_RESULT_NO: string = "no";
      private static DIALOG_YES_BUTTON_ID: string = "PreEndTransactionTrigger_MessageDialog_Yes";
@@ -18,29 +15,20 @@ export default class PreEndTransactionTriggerExt extends Triggers.PreEndTransact
      async execute(options: Triggers.IPreEndTransactionTriggerOptions): Promise<ClientEntities.ICancelable> {
 
          let lineQtyExceedLimitation: Boolean = false;
-         let qtyLimitation: number = 10;
          let qtyLimitExceedInfo: string = '';
          let qtyLimitExceedAdditional: string = "All these products exceeded its quantity limitation, need manager approval to proceed";
 
          let getQtyValidationResultByCartRequest: StoreOperations.GetQtyValidationResultByCartRequest<StoreOperations.GetQtyValidationResultByCartResponse>
              = new StoreOperations.GetQtyValidationResultByCartRequest(options.cart.Id, options.cart.Version);
-         //await ClientEntities
 
-         let result: ClientEntities.ICancelableDataResult<StoreOperations.GetQtyValidationResultByCartResponse> = await this.context.runtime.executeAsync(getQtyValidationResultByCartRequest);
+         let qtyValidationResultByCartResponse: ClientEntities.ICancelableDataResult<StoreOperations.GetQtyValidationResultByCartResponse> = await this.context.runtime.executeAsync(getQtyValidationResultByCartRequest);
 
-
-         //this.context.runtime.executeAsync(getQtyValidationResultByCartRequest).then((result: ClientEntities.ICancelableDataResult<StoreOperations.GetQtyValidationResultByCartResponse>))
-         
-
-         options.cart.CartLines.forEach((cartline: ProxyEntities.CartLineClass): void => {
-             if (cartline.Quantity > qtyLimitation /*|| cartline.Quantity > cartline.ExtensionProperties[0].Value.DecimalValue*/) {
-                 lineQtyExceedLimitation = true;
-                 qtyLimitExceedInfo += `Product item number ${cartline.ItemId} with quantity ${cartline.Quantity}, while its quantity limitation is: ${qtyLimitation} \n`;
-             }
-        });
-
+         qtyValidationResultByCartResponse.data.result.forEach((validationFailure: ProxyEntities.DataValidationFailure): void => {
+             lineQtyExceedLimitation = true;
+             qtyLimitExceedInfo += validationFailure.ErrorContext + '\n';
+         });
+    
          if (lineQtyExceedLimitation) {
-
              let yesButton: ClientEntities.Dialogs.IDialogResultButton = {
                  id: PreEndTransactionTriggerExt.DIALOG_YES_BUTTON_ID,
                  label: "Yes", // "Yes"
@@ -56,7 +44,6 @@ export default class PreEndTransactionTriggerExt extends Triggers.PreEndTransact
                  title: "Quantity limitation exceeded",
                  subTitle: StringExtensions.EMPTY,
                  message: qtyLimitExceedInfo + qtyLimitExceedAdditional,
-                // message: "Some product exceeded its quantity limitation, need manager approval to proceed", // "Do you want to mark this order as a B2B order?"
                  button1: yesButton,
                  button2: noButton
              };
