@@ -7,7 +7,7 @@ retail store cashier need manager approval to complete the transaction.
 # How to use this solution
 
 1. Enable the feature
-   ![Alt text]((https://github.com/zhangguanghuib/POS_Extension/blob/main/CWExtensions/Images/1-EnableFeature.png?raw=true "Optional title")
+   ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/CWExtensions/Images/1-EnableFeature.png?raw=true "Optional title")
 
 2. Set quantity limitation through default order settins
    ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/CWExtensions/Images/2-SetDefaultOrderSettings.png?raw=true "Optional title")
