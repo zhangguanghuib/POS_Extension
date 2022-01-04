@@ -1,0 +1,27 @@
+{
+  "$schema": "../schemas/manifestSchema.json",
+  "name": "Pos_CSUQuery_TableBrowser",
+  "publisher": "Microsoft",
+  "version": "7.2.0",
+  "minimumPosVersion": "7.2.0.0",
+  "components": {
+    "create": {
+      "operations": [
+        {
+          "operationId": "60004",
+          "operationRequestFactoryPath": "Operations/CSUQueryOp/CSUQueryOperationRequestFactory",
+          "operationRequestHandlerPath": "Operations/CSUQueryOp/CSUQueryOperationRequestHandler"
+        }
+      ],
+      "views":[
+          {
+            "title": "Retail Transactions View Table Browser",
+            "pageName": "RetailTransactionsView",
+            "phonePageName": "RetailTransactionsView",
+            "viewDirectory": "Views/",
+            "viewControllerPath": "Views/RetailTransactionsView"
+          }
+        ]
+    }
+  }
+}

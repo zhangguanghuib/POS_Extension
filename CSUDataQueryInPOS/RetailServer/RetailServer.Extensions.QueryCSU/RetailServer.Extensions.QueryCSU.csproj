@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>RetailServer.Extensions.QueryCSU</RootNamespace>
+    <AssemblyName>RetailServer.Extensions.QueryCSU</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Runtime.Entities" Version="9.32.21271.2" />
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Runtime.Hosting.Contracts" Version="10.4.21267.1" />
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Runtime.Workflow" Version="9.32.21271.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Runtime.Extensions.QueryCSU\Runtime.Extensions.QueryCSU.csproj" />
+  </ItemGroup>
+
+</Project>

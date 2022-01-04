@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Retail Transactions</title>
+    <style>
+        div.scroll {
+            margin: 4px, 4px;
+            padding: 4px;
+            background-color: #08c708;
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: auto;
+            white-space: nowrap;
+        }
+        textarea {
+            border: 2px solid lime;
+            overflow: scroll;
+            width: 60%;
+            height: 200px;
+        }
+        button {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div style="display:block">
+            <div class="h4">Input SQL text for query:</div>
+            <!-- <input type="text" placeholder="SQL script" data-bind="value: transactionComment" /><br />-->
+            <textarea placeholder="SQL script" data-bind="value: transactionComment"></textarea><br />
+        </div>
+        <div style="display:block">
+            <button data-bind="click:onTransactionComment">Execute</button>
+        </div>
+        <div class="scroll" style="display:block">
+            <div data-bind="html: details"></div>
+        </div>
+    </div>
+   
+</body>
+</html>

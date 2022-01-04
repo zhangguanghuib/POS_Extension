@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\BuildTools\Microsoft.Dynamics.RetailSdk.Build.props" />
+  <Import Project="..\..\..\BuildTools\Common.props" />
+  <Import Project="..\..\..\BuildTools\Microsoft.Dynamics.RetailSdk.Build.settings" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>$(AssemblyNamePrefix).Commerce.TypeScriptProxy.QueryCSU</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+  </PropertyGroup>
+
+  <ItemGroup Label="Libraries">
+    <TypeReferences Include="..\..\..\Pos\Contracts\*.d.ts">
+      <Visible>false</Visible>
+    </TypeReferences>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Tools.ExtensionsProxyGenerator" Version="$(ChannelRepoPackagesVersion)" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RetailServerExtensionAssemblies Include="$(SdkRootPath)\SampleExtensions\RetailServer\RetailServer.Extensions.QueryCSU\bin\Debug\netstandard2.0\RetailServer.Extensions.QueryCSU.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DataService\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RetailServer.Extensions.QueryCSU\RetailServer.Extensions.QueryCSU.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyGeneratedContractsToPos" AfterTargets="AfterBuild">
+    <ItemGroup>
+      <GeneratedDataServiceContracts Include="DataService\*.g.ts" />
+    </ItemGroup>
+    <Copy SourceFiles="@(GeneratedDataServiceContracts)" DestinationFolder="$(SdkRootPath)\SampleExtensions\TypeScriptProxy\DataService" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Import Project="..\..\..\BuildTools\Microsoft.Dynamics.RetailSdk.Build.targets" />
+</Project>
