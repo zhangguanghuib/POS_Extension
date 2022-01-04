@@ -7,6 +7,6 @@ There are 2 ways provided in this solution, one is download the data into CSV fi
 # How to use this solution
 
 1. Click the POS operation
-   ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/CSUDataQueryInPOS/Images/UI.png?raw=true "Optional title")
+   ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/CSUDataQueryInPOS/Images/PO_Operation.png?raw=true "Optional title")
 3. Input SQL script and click "Execute" button to retreive the data.
    ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/CSUDataQueryInPOS/Images/UI.png?raw=true "Optional title")
