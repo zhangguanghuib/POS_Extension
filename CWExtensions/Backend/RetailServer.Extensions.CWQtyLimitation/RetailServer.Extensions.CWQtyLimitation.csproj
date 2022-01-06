@@ -12,4 +12,8 @@
     <PackageReference Include="Microsoft.Dynamics.Commerce.Runtime.Workflow" Version="9.32.21271.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Runtime.Extensions.CWQtyLimitation\Runtime.Extensions.CWQtyLimitation.csproj" />
+  </ItemGroup>
+
 </Project>
