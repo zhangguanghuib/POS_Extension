@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DirectSQLExecutor</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DirectSQLExecutor extends FormRun
+{
+    public const str SELECTSTR = 'SELECT';
+    public const str DELETESTR = 'DELETE';
+    public const str UPDATESTR = 'UPDATE';
+    public const str INSERTSTR = 'INSERT';
+
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>btnOK</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            str sql = strLTrim(strLRTrim(sqlBox.text()));
+            str op1 = strUpr(subStr(sql, 0, 6));
+
+            if (op1 == SELECTSTR)
+            {
+                ResultSet resultSet = DirectSQLExecutor::executeQuery(sql);
+                
+                DirectSQLExecutor::writeResultToCSV(resultSet);
+            }
+            else if (op1 == DELETESTR || op1 == UPDATESTR || op1 == INSERTSTR)
+            {
+                int result =  DirectSQLExecutor::executeUpdate(sql);
+            }
+            else
+            {
+                Info("Your input is invalid");
+            }
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TableNameListTemp_TableName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            tableNameListTemp.lookupTableName(this);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ShowData</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            var env = Microsoft.Dynamics.ApplicationPlatform.Environment.EnvironmentFactory::GetApplicationEnvironment();
+           // str domainName  = env.Infrastructure.FullyQualifiedDomainName;
+            str domainName = env.Infrastructure.HostUrl;
+            str tableName = TableNameListTemp_TableName.text();
+            if (tableName)
+            {
+                str  tableBrowserUrl = strFmt("%1?cmp=%2&mi=Systablebrowser&tablename=%3", domainName, curExt(), tableName);
+                Browser browser = new Browser();
+                browser.navigate(tableBrowserUrl, true, false);
+            }
+
+            // MenuFunction menuFunction = new MenuFunction(menuItemDisplayStr(sysTableBrowser), MenuItemType::Display);
+            //if (hasMenuItemSecurityAccess(menuFunction))
+            //{
+            //    Args args = new Args();
+            //    //args.parm(
+            //    args.parm('tablename=custgroup');
+            //    menuFunction.run(args);
+            //}
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TableNameListTemp</Name>
+			<Table>TableNameListTemp</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableName</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Columns xmlns="">2</Columns>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">SimpleList</Style>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupControl1</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>sqlBox</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Height>500</Height>
+						<Type>String</Type>
+						<Width>500</Width>
+						<WidthMode>Manual</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>Str1260</ExtendedDataType>
+						<Label>SQL Statement here:</Label>
+						<MultiLine>Yes</MultiLine>
+						<ViewEditMode>Edit</ViewEditMode>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormCommandButtonControl">
+								<Name>btnOK</Name>
+								<Type>CommandButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Command>OK</Command>
+								<Text>Execute</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCommandButtonControl">
+								<Name>btnCancel</Name>
+								<Type>CommandButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Command>Cancel</Command>
+								<SaveRecord>No</SaveRecord>
+								<Text>Close</Text>
+							</AxFormControl>
+						</Controls>
+						<Columns>2</Columns>
+						<FrameType>GroupedFieldsLabel</FrameType>
+						<Style>DialogCommitContainer</Style>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>ResultStatus</Name>
+						<AllowEdit>No</AllowEdit>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>StaticText</Type>
+						<FormControlExtension
+							i:nil="true" />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Query</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>TableNameListTemp_TableName</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>TableName</DataField>
+								<DataSource>TableNameListTemp</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ShowData</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Show Data</Text>
+							</AxFormControl>
+						</Controls>
+						<DataSource>TableNameListTemp</DataSource>
+					</AxFormControl>
+				</Controls>
+				<Columns>2</Columns>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>AzureBlobStorageDemo</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.ApplicationPlatform.Services.Instrumentation;
+using Microsoft.DynamicsOnline.Infrastructure.Components.SharedServiceUnitStorage;
+using Microsoft.Dynamics.AX.Framework.FileManagement;
+
+public class AzureBlobStorageDemo
+{
+    str docfiletype;
+    Microsoft.Dynamics.AX.Framework.FileManagement.IDocumentStorageProvider storageProvider;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        AzureBlobStorageDemo demo = new  AzureBlobStorageDemo();
+        str fileName = demo.createFile();
+        //str downloadUrl = demo.uploadfile(fileName, System.IO.Path::GetTempPath());
+        //str downloadUrl = demo.uploadfile("AX2009.csv", @"C:\Temp");
+        str downloadUrl = demo.uploadfile(fileName, @"C:\Temp");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadfile</Name>
+				<Source><![CDATA[
+    public str uploadfile(Filename _Filename,Filename _filePath)
+    {
+        guid fileGuid = newGuid();
+        str fileId;
+        str downloadUrl;
+        System.IO.Stream    _stream;
+        str fileNameAZ = strFmt('%1/%2', fileId, _fileName);//filename = Filename.Xlsx
+        fileId = guid2str(fileGuid);
+        //_stream = File::UseFileFromURL(_filePath);//filepath = C://Temp//Filename.Xlsx
+        _stream = File::UseFileFromURL(System.IO.Path::Combine(_filePath, _Filename));
+        var blobInfo = new SharedServiceUnitStorageData();
+        blobInfo.Id = fileId;
+        blobInfo.Category = "AzureStorage";//Folder name
+        blobInfo.Name = _Filename;
+        blobInfo.Accessibility = Accessibility::Private;
+        blobInfo.Retention = Retention::Permanent;
+       
+        if (_stream.CanSeek)
+        {
+            _stream.Seek(0, System.IO.SeekOrigin::Begin);
+        }
+
+        var blobStorageService = new SharedServiceUnitStorage(SharedServiceUnitStorage::GetDefaultStorageContext());
+        blobStorageService.UploadData(blobInfo, _stream);
+        var uploadedBlobInfo = blobStorageService.GetData(fileId, "AzureStorage", BlobUrlPermission::Read, System.TimeSpan::FromDays(30));
+        //Time span To keep the file Azure.
+        downloadUrl =uploadedBlobInfo.BlobLink;
+
+        return downloadUrl;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFile</Name>
+				<Source><![CDATA[
+    public str createFile()
+    {
+        str filePath,
+            filePathAndName,
+            fileContent = "01234567890123456789";
+            
+            // prepare file name
+            //filePath = System.IO.Path::GetTempPath();
+            filePath = @"C:\Temp";
+            str fileName =  'f' + guid2str(newGuid()) + '.txt';
+            //filePathAndName = filePath + 'f' + guid2str(newGuid()) + '.txt';
+            filePathAndName = System.IO.Path::Combine(filePath, fileName);
+            // Save file
+            File::SendStringAsFileToUser(fileContent, filePathAndName);
+            info(filePath);
+            info(filePathAndName);
+            info("done");
+        return fileName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

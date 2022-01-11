@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DirectSQLExecutor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DirectSQLExecutor
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>executeQuery</Name>
+				<Source><![CDATA[
+    public static ResultSet  executeQuery(str _sqlStatement)
+    {
+        UserConnection userConnection;
+        Statement      statement;
+        str            sqlStatement;
+        SqlStatementExecutePermission sqlPermission;
+        ResultSet      resultSet;
+
+        sqlStatement = _sqlStatement;
+        userConnection = new UserConnection();
+        statement = userConnection.createStatement();
+        sqlPermission = new SqlStatementExecutePermission(sqlStatement);
+     
+        sqlPermission.assert();
+
+        resultSet = statement.executeQuery(sqlStatement);
+
+        CodeAccessPermission::revertAssert();
+
+        return resultSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateUniqueFileName</Name>
+				<Source><![CDATA[
+    private static str generateUniqueFileName()
+    {
+        System.String fileName =  System.DateTimeOffset::Now.ToString("yyyy-mm-dd hh-mm-ss.s");
+        fileName = strFmt("%1%2.csv",@"c:\\Temp\", fileName);
+        return fileName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeResultToCSV</Name>
+				<Source><![CDATA[
+    public static boolean  writeResultToCSV(ResultSet resultSet)
+    {
+        #define.ExampleFile(@"c:\\Temp\AX2009.csv")
+        #define.ExampleOpenMode("W")
+        TextBuffer textBuffer = new TextBuffer();
+        Counter    lines;
+        boolean    headerPrinted = false;
+
+        try
+        {
+            //str fileName = strFmt("%1%2",System.DateTimeOffset::Now.Date.ToString(), System.DateTimeOffset::Now.Millisecond.ToString());
+            //fileName = strReplace(fileName," ", "");
+            str fileName = DirectSQLExecutor::generateUniqueFileName();
+            //fileName = strFmt("%1.csv", fileName);
+            //str fileName = #ExampleFile;
+            //FileIOPermission perm = new FileIOPermission(#ExampleFile, #ExampleOpenMode);
+            FileIOPermission perm = new FileIOPermission(fileName, #ExampleOpenMode);
+            perm.assert();
+
+            while(resultSet.next())
+            {
+                ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+                int colCnt = resultSetMetaData.getColumnCount();
+
+                if (!headerPrinted)
+                {
+                    for (Counter counter = 1; counter <= resultSetMetaData.getColumnCount(); counter++)
+                    {
+                        textBuffer.appendText(strFmt("%1,", Global::strReplace(resultSetMetaData.getColumnName(counter), ",", "")));
+                    }
+
+                    textBuffer.appendText("\n");
+                    headerPrinted = true;
+                }
+
+                for (Counter counter = 1; counter <= resultSetMetaData.getColumnCount(); counter++)
+                {
+                    switch (resultSetMetaData.getColumnType(counter))
+                    {
+                        case 0,1 :
+                            textBuffer.appendText(strFmt("%1,", Global::strReplace(resultSet.getString(counter), ",", "")));
+                            break;
+                        case 3 :
+                            textBuffer.appendText(strFmt("%1,", Global::strReplace(date2StrUsr(resultSet.getdate(counter)), ",", "")));
+                            break;
+                    }
+                }
+
+                textBuffer.appendText("\n");
+            }
+
+            lines = textBuffer.numLines();
+
+            try
+            {
+                if (textBuffer.toFile(fileName))
+                {
+                    info(strFmt("File generated as %1,  total insert %2 lines", fileName, lines));
+                }
+            }
+            catch(Exception::Error)
+            {
+                error("Generate file ");
+            }
+        }
+        catch(Exception::Deadlock)
+        {
+            retry;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeResultToCSVVersionDotNet</Name>
+				<Source><![CDATA[
+    public static  boolean  writeResultToCSVVersionDotNet(ResultSet resultSet)
+    {
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeUpdate</Name>
+				<Source><![CDATA[
+    public static int  executeUpdate(str _sqlStatement)
+    {
+        UserConnection userConnection;
+        Statement      statement;
+        str            sqlStatement;
+        SqlStatementExecutePermission sqlPermission;
+        ResultSet      resultSet;
+
+        sqlStatement = _sqlStatement;
+        userConnection = new UserConnection();
+        statement = userConnection.createStatement();
+        sqlPermission = new SqlStatementExecutePermission(sqlStatement);
+     
+        sqlPermission.assert();
+
+        int result = statement.executeUpdate(sqlStatement);
+
+        CodeAccessPermission::revertAssert();
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMetadata</Name>
+				<Source><![CDATA[
+    public void getMetadata(str _sql)
+    {
+        List listDatasources = new List(Types::String);
+        listDatasources.addEnd("CUSTTABLE");
+        listDatasources.addEnd("CUSTGROUP");
+
+        List listJoins = new List(Types::Class);
+        listJoins.addEnd(new DirectSQLTableRelation("CUSTTABLE", "CUSTGROUP", "CUSTGROUP", "CUSTGROUP"));
+
+        List listRanges = new List(Types::Class);
+        listRanges.addEnd(new DirectSQLTableFieldRange("CUSTGROUP", "CUSTGROUP", "10"));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createForm</Name>
+				<Source><![CDATA[
+    public void createForm(List _listDatasources, List _listJoins, List listRanges)
+    {
+        DictTable  dictTable   = new DictTable(tableNum(CustGroup));
+
+        Form form = new Form();
+        form.name("QueryResult");
+
+        FormBuildDataSource  ds = form.addDataSource(dictTable.name());
+        ds.table(dictTable.id());
+
+        ds = form.addDataSource(dictTable.name());
+        ds.table(dictTable.id());
+        
+       // form.da
+
+      //  form.dataSource().
+
+        //QueryBuildDataSource qbds = ds. .dataSourceTable(dictTable.id());
+        //qbds.addDataSource(tableNum(CustTable));
+
+        //qbdsPurchLine = this.query().dataSourceTable(tableNum(PurchLine));
+        //qbdsPurchLine.addRange(fieldnum(PurchLine, PurchStatus)).value(queryvalue(PurchStatus::Backorder));
+
+        //qbdsPurchTable = qbdsPurchLine.addDataSource(tableNum(PurchTable));
+        //qbdsPurchTable.addLink(fieldNum(PurchTable, PurchId), fieldNum(PurchLine, PurchId));
+        //qbdsPurchTable.addRange(fieldnum(PurchTable, InterCompanyOrigin)).value(queryValue(InterCompanyOrigin::Derived));
+
+        FormBuildDesign design = form.addDesign('Design');
+        design.caption("Query Result");
+        design.style(FormStyle::SimpleList);
+        design.titleDatasource(ds.id());
+
+        FormBuildGroupControl grpBody = design.addControl(FormControlType::Group, 'Body');
+        grpBody.heightMode(FormHeight::ColumnHeight);
+        grpBody.columnspace(0);
+        grpBody.style(GroupStyle::BorderlessGridContainer);
+
+       FormBuildGridControl  grid = grpBody.addControl(FormControlType::Grid, "Grid");
+        grid.dataSource(ds.name());
+        grid.showRowLabels(false);
+        grid.widthMode(FormWidth::ColumnWidth);
+        grid.heightMode(FormHeight::ColumnHeight);
+
+        grid.addDataField(ds.id(), fieldNum(CustGroup, CustGroup));
+        grid.addDataField(ds.id(), fieldNum(CustGroup, Name));
+        grid.addDataField(ds.id(), fieldNum(CustGroup, PaymTermId));
+        grid.addDataField(ds.id(), fieldNum(CustGroup, ClearingPeriod));
+        grid.addDataField(ds.id(), fieldNum(CustGroup, BankCustPaymIdTable));
+        grid.addDataField(ds.id(), fieldNum(CustGroup, TaxGroupId));
+        grid.addDataField(tableNum(CustTable), fieldNum(CustTable, AccountNum));
+
+        Args args = new Args();
+        args.object(form);
+
+        FormRun formRun = classFactory.formRunClass(args);
+
+        formRun.init();
+
+        //FormDataSource dsMaster = formRun.dataSource(dictTable.name());
+
+        //Query query = dsMaster..addDataSource(tableNum(CustTable));
+      
+        
+        formRun.run();
+
+        formRun.detach();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
