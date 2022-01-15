@@ -11,6 +11,7 @@ namespace BlobQuickstartV12
 {
     class Program
     {
+        // https://docs.microsoft.com/en-us/azure/storage/blobs/storage-secure-access-application?tabs=azure-powershell
         const string connectionString = "*";
         const string containerName = "roote-container-20220115";
         const string accountName = "*";
