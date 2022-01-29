@@ -1,6 +1,9 @@
 ##This script is to fix salesline whose inventroy transaction are missing for unknown reason, the idea to increase sales qty by one and then reduce it by one to trigger the inventory transaction got created successfully.
 This script verified works fine in customer's production.
 
+This script may not be the most right way to fix the inventory transaction missing issue, but it provide a way to change the sales line quantity through x++ code:
+
+
 #1. Class Name
 ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/Dynamics365HQ/InventTrans_Missing_Fix/Images/1.png?raw=true "Optional title")
 #2. Find Salesline whose inventory transaction are missing
