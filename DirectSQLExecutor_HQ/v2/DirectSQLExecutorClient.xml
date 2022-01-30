@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DirectSQLExecutorClient</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DirectSQLExecutorClient extends FormRun
+{
+    public const str SELECTSTR = 'SELECT';
+    public const str DELETESTR = 'DELETE';
+    public const str UPDATESTR = 'UPDATE';
+    public const str INSERTSTR = 'INSERT';
+
+    DirectSQLExecutorService directSqlService = new DirectSQLExecutorService();
+
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>BtnExecute</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+
+            str sql = strLTrim(strLRTrim(SqlBox.text()));
+            str op1 = strUpr(subStr(sql, 0, 6));
+
+            if (op1 == SELECTSTR)
+            {
+                str blobLink = directSqlService.executeQueryReturnWithBlobLink(sql);
+                if (blobLink)
+                {
+                    System.IO.Stream stream = File::UseFileFromURL(blobLink);
+                    File::SendFileToUser(stream, guid2StrWithoutBraces(newGuid())+".csv");
+                }
+            }
+            else if (op1 == DELETESTR || op1 == UPDATESTR || op1 == INSERTSTR)
+            {
+                int result =  DirectSQLExecutor::executeUpdate(sql);
+                info("Your SQL got executed with return code: " + int2Str(result));
+            }
+            else
+            {
+                Info("Your input is invalid");
+            }
+            
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>GoTableBrowser</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            var env = Microsoft.Dynamics.ApplicationPlatform.Environment.EnvironmentFactory::GetApplicationEnvironment();
+            // str domainName  = env.Infrastructure.FullyQualifiedDomainName;
+            str domainName = env.Infrastructure.HostUrl;
+            str tableName = TableNameBox.text();
+            if (tableName)
+            {
+                str  tableBrowserUrl = strFmt("%1?cmp=%2&mi=Systablebrowser&tablename=%3", domainName, curExt(), tableName);
+                Browser browser = new Browser();
+                browser.navigate(tableBrowserUrl, true, false);
+            }
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">Direct SQL Executor Client</Caption>
+		<Pattern xmlns="">Custom</Pattern>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>SQLExecutor</Name>
+						<Pattern>FillText</Pattern>
+						<PatternVersion>UX7 1.0</PatternVersion>
+						<Tags>SQL Executor</Tags>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SqlBox</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DisplayHeight>20</DisplayHeight>
+								<DisplayHeightMode>Fixed</DisplayHeightMode>
+								<Label>Input SQL Script Here:</Label>
+								<MultiLine>Yes</MultiLine>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>ButtonGroup1</Name>
+								<Type>ButtonGroup</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>BtnExecute</Name>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>Execute</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonSeparatorControl">
+										<Name>FormButtonSeparatorControl1</Name>
+										<Type>ButtonSeparator</Type>
+										<FormControlExtension
+											i:nil="true" />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>BtnClose</Name>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>Close</Text>
+									</AxFormControl>
+								</Controls>
+								<Columns>3</Columns>
+							</AxFormControl>
+						</Controls>
+						<Caption>SQL Executor</Caption>
+						<Style>DetailsFormDetails</Style>
+						<ViewEditMode>Edit</ViewEditMode>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TableBrowser</Name>
+						<Tags>Table Browser</Tags>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>TableNameBox</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>Table Name:</Label>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>GoTableBrowser</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Go to TableBrowser</Text>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>Table Bowser</Caption>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

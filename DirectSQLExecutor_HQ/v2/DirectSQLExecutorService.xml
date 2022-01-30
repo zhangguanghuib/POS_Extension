@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DirectSQLExecutorService</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.ApplicationPlatform.Services.Instrumentation;
+using Microsoft.DynamicsOnline.Infrastructure.Components.SharedServiceUnitStorage;
+using Microsoft.Dynamics.AX.Framework.FileManagement;
+
+class DirectSQLExecutorService
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>executeQueryReturnWithBlobLink</Name>
+				<Source><![CDATA[
+    public str executeQueryReturnWithBlobLink(str _sqlStatement)
+    {
+        ResultSet resultSet =  this.executeQuery(_sqlStatement);
+
+        TextBuffer resultText = this.getTextBufferFromResultSet(resultSet);
+
+        str fileName = this.writeContentToCSV(resultText);
+
+        str azureBlobLink = this.uploadCSVToAzureBlob(fileName);
+
+        return azureBlobLink;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeQuery</Name>
+				<Source><![CDATA[
+    public ResultSet  executeQuery(str _sqlStatement)
+    {
+        UserConnection userConnection;
+        Statement      statement;
+        str            sqlStatement;
+        SqlStatementExecutePermission sqlPermission;
+        ResultSet      resultSet;
+
+        sqlStatement = _sqlStatement;
+        userConnection = new UserConnection();
+        statement = userConnection.createStatement();
+        sqlPermission = new SqlStatementExecutePermission(sqlStatement);
+     
+        sqlPermission.assert();
+
+        resultSet = statement.executeQuery(sqlStatement);
+
+        CodeAccessPermission::revertAssert();
+
+        return resultSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTextBufferFromResultSet</Name>
+				<Source><![CDATA[
+    public TextBuffer getTextBufferFromResultSet(ResultSet resultSet)
+    {
+        TextBuffer textBuffer = new TextBuffer();
+        boolean    headerPrinted = false;
+
+        while(resultSet.next())
+        {
+            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            int colCnt = resultSetMetaData.getColumnCount();
+
+            if (!headerPrinted)
+            {
+                for (Counter counter = 1; counter <= resultSetMetaData.getColumnCount(); counter++)
+                {
+                    textBuffer.appendText(strFmt("%1,", Global::strReplace(resultSetMetaData.getColumnName(counter), ",", "")));
+                }
+
+                textBuffer.appendText("\n");
+                headerPrinted = true;
+            }
+
+            for (Counter counter = 1; counter <= resultSetMetaData.getColumnCount(); counter++)
+            {
+                switch (resultSetMetaData.getColumnType(counter))
+                {
+                    case 0,1 :
+                        textBuffer.appendText(strFmt("%1,", Global::strReplace(resultSet.getString(counter), ",", "")));
+                        break;
+                    case 3 :
+                        textBuffer.appendText(strFmt("%1,", Global::strReplace(date2StrUsr(resultSet.getdate(counter)), ",", "")));
+                        break;
+                }
+            }
+
+            textBuffer.appendText("\n");
+        }
+
+        return textBuffer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeContentToCSV</Name>
+				<Source><![CDATA[
+    public str writeContentToCSV(TextBuffer fileContent)
+    {
+        str filePath = System.IO.Path::GetTempPath();
+        str _fileName = this.generateUniqueFileName();
+        str filePathAndName = System.IO.Path::Combine(System.IO.Path::GetTempPath(), _fileName);
+       
+        try
+        {
+            if (fileContent.toFile(filePathAndName))
+            {
+                return _fileName;
+            }
+        }
+        catch(Exception::Error)
+        {
+            retry;
+        }
+        return "";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateUniqueFileName</Name>
+				<Source><![CDATA[
+    private str generateUniqueFileName()
+    {
+        System.DateTimeOffset timeNow = System.DateTimeOffset::Now;
+        str fileName  = strFmt("%1%2%3.csv", timeNow.Year, timeNow.Month, timeNow.Day);
+        fileName = guid2StrWithoutBraces(newGuid()) + "_" + fileName;
+        return fileName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadCSVToAzureBlob</Name>
+				<Source><![CDATA[
+    public str uploadCSVToAzureBlob(str _fileName)
+    {
+        str _filePathAndName = System.IO.Path::Combine(System.IO.Path::GetTempPath(), _fileName);
+
+        System.IO.Stream  _stream = File::UseFileFromURL(_filePathAndName);
+        var blobInfo = new SharedServiceUnitStorageData();
+        blobInfo.Id = guid2StrWithoutBraces(newGuid())+".csv";
+        blobInfo.Category = "AzureStorage";//Folder name
+        blobInfo.Name = _fileName;
+        blobInfo.Accessibility = Accessibility::Private;
+        blobInfo.Retention = Retention::Permanent;
+       
+        if (_stream.CanSeek)
+        {
+            _stream.Seek(0, System.IO.SeekOrigin::Begin);
+        }
+
+        var blobStorageService = new SharedServiceUnitStorage(SharedServiceUnitStorage::GetDefaultStorageContext());
+        blobStorageService.UploadData(blobInfo, _stream);
+        var uploadedBlobInfo = blobStorageService.GetData(blobInfo.Id, "AzureStorage", BlobUrlPermission::Read, System.TimeSpan::FromDays(30));
+        //Time span To keep the file Azure.
+        str downloadUrl = uploadedBlobInfo.BlobLink;
+
+        return downloadUrl;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeUpdate</Name>
+				<Source><![CDATA[
+    public static int  executeUpdate(str _sqlStatement)
+    {
+        UserConnection userConnection;
+        Statement      statement;
+        str            sqlStatement;
+        SqlStatementExecutePermission sqlPermission;
+        ResultSet      resultSet;
+
+        sqlStatement = _sqlStatement;
+        userConnection = new UserConnection();
+        statement = userConnection.createStatement();
+        sqlPermission = new SqlStatementExecutePermission(sqlStatement);
+     
+        sqlPermission.assert();
+
+        int result = statement.executeUpdate(sqlStatement);
+
+        CodeAccessPermission::revertAssert();
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TableNameListTemp</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TableNameListTemp extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>populate</Name>
+				<Source><![CDATA[
+    public static TableNameListTemp populate()
+    {
+        TableNameListTemp table;
+        var tables = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::TableNames();
+        while(tables.MoveNext())
+        {
+            table.clear();
+            table.initValue();
+            table.TableName = tables.Current;
+            table.insert();
+        }
+        return table;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableName</Name>
+				<Source><![CDATA[
+    public void lookupTableName(FormStringControl _control)
+    {   
+        Query q = new Query();
+        QueryBuildDataSource qbds =  q.addDataSource(tableNum(TableNameListTemp));
+        qbds.addSortField(fieldNum(TableNameListTemp, TableName), SortOrder::Ascending);
+        SysTableLookup lookup = SysTableLookup::newParameters(tableNum(TableNameListTemp), _control, true);
+        lookup.addLookupfield(fieldNum(TableNameListTemp, TableName), true);
+        lookup.parmQuery(q);
+        lookup.parmTmpBuffer(TableNameListTemp::populate());
+        lookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableType>InMemory</TableType>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TableName</Name>
+			<ExtendedDataType>IdentifierName</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>
