@@ -1,0 +1,31 @@
+{
+  "$schema": "../schemas/manifestSchema.json",
+  "name": "Pos_CustomControl_Transaction",
+  "publisher": "GuanghuiZhang",
+  "version": "7.2.0",
+  "minimumPosVersion": "7.2.0.0",
+  "components": {
+    "resources": {
+      "supportedUICultures": [ "en-US" ],
+      "fallbackUICulture": "en-US",
+      "culturesDirectoryPath": "Resources/Strings",
+      "stringResourcesFileName": "resources.resjson"
+    },
+    "extend": {
+      "views": {
+        "CartView": {
+          "viewController": { "modulePath": "Cart/CartViewController" },
+          "controlsConfig": {
+            "customControls": [
+              {
+                "controlName": "lineDetails",
+                "htmlPath": "Cart/LineDetailsCustomControl.html",
+                "modulePath": "Cart/LineDetailsCustomControl"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

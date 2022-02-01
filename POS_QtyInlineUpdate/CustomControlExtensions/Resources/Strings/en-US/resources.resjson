@@ -1,0 +1,12 @@
+﻿{
+    "string_2"                                      : "Error:\n{0}",
+    "_string_2.comment"                             : "Error message display string.",
+	//======================== Message Dialog Buttons.  ========================
+    "string_50"                                     : "OK",
+    "_string_50.comment"                            : "OK button label.",
+
+	//======================== Common Message Dialog Titles.  ========================
+    "string_70"                                     : "Error",
+    "_string_70.comment"                            : "Title for an error message dialog."
+
+}
