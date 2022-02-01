@@ -11,5 +11,5 @@
 ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/POS_QtyInlineUpdate/Images/UI1_Html.png?raw=true "Optional title")
 #5.This UI, whenever QTY changed, POS will talk to retail server to trigger the change immediately
 ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/POS_QtyInlineUpdate/Images/UI2_POS.png?raw=true "Optional title")
-#5.The html of UI way 2 is as below:
+#6.The html of UI way 2 is as below:
 ![Alt text](https://github.com/zhangguanghuib/POS_Extension/blob/main/POS_QtyInlineUpdate/Images/UI2_Html.png?raw=true "Optional title")
