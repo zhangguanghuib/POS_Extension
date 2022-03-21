@@ -33,23 +33,14 @@ namespace Runtime.Extensions.TelstraEmailImage
         /// <param name="request">The request.</param>
         public async Task OnExecuting(Request request)
         {
-            // Version 1:  <html><body><img src="data:image/png;base64,  %imagebase64data%" alt="" /><pre>%message%</pre></body></html>
-            //if (request is ComposeEmailServiceRequest)
-            //{
-            //    ComposeEmailServiceRequest req = (ComposeEmailServiceRequest)request;
-            //    IDictionary<string, string> placeholderReplacements = req.PlaceholderMappings;
 
-            //    string imageUrl = @"https://usnconeboxax1ret.cloud.onebox.dynamics.com/MediaServer/Products/0002_000_001.png";
-            //    placeholderReplacements.Add(ImageBase64Data, await this.ConvertImageURLToBase64Async(imageUrl));
-            //}
-			
-			// select * from dbo.SYSEMAILMESSAGETABLE as T where T.EMAILID = 'EmailRecpt'
-            //select * from ax.SYSEMAILMESSAGETABLE as T where T.EMAILID = 'EmailRecpt'
-
+            // select * from dbo.SYSEMAILMESSAGETABLE as T where T.EMAILID = 'EmailRecpt'
+            // select * from ax.SYSEMAILMESSAGETABLE as T where T.EMAILID = 'EmailRecpt'
             // update ax.SYSEMAILMESSAGETABLE
-            //set MAIL = '<html><body><img src="%https://usnconeboxax1ret.cloud.onebox.dynamics.com/MediaServer/Products/0003_000_001.png%" alt="" /><pre>%message%</pre></body></html>'
+            // set MAIL = '<html><body><img src="%https://usnconeboxax1ret.cloud.onebox.dynamics.com/MediaServer/Products/0003_000_001.png%" alt="" /><pre>%message%</pre></body></html>'
             // where RECID = 11290925407
-            //Version 2:  <html><body><img src="%https://usnconeboxax1ret.cloud.onebox.dynamics.com/MediaServer/Products/0002_000_001.png%" alt="" /><pre>%message%</pre></body></html>
+
+            // Version 2:  <html><body><img src="%https://usnconeboxax1ret.cloud.onebox.dynamics.com/MediaServer/Products/0002_000_001.png%" alt="" /><pre>%message%</pre></body></html>
             if (request is ComposeEmailServiceRequest)
             {
                 ComposeEmailServiceRequest req = (ComposeEmailServiceRequest)request;
@@ -79,27 +70,6 @@ namespace Runtime.Extensions.TelstraEmailImage
         /// <param name="response">The response.</param>
         public async Task OnExecuted(Request request, Response response)
         {
-            //if (request is ComposeEmailServiceRequest)
-            //{
-            //    ComposeEmailServiceRequest req = (ComposeEmailServiceRequest)request;
-            //    ComposeEmailServiceResponse res = (ComposeEmailServiceResponse)response;
-
-            //    EmailMessage emailMessage = res.ComposedEmail;
-
-            //    // string imageUrl = "https://i.imgur.com/MNwsDvt.jpeg";
-            //    string imageUrl = "https://usnconeboxax1ret.cloud.onebox.dynamics.com/MediaServer/Products/0002_000_001.png";
-                
-            //    // Version 1, sync mode
-            //    //string imageBase64Data = this.ConvertImageURLToBase64(imageUrl);
-
-            //    // Version 2, async mode
-            //    string imageBase64Data = await this.ConvertImageURLToBase64Async(imageUrl);
-
-            //    string imageBase64Url = "<img src = \"data:image/png;base64, " + imageBase64Data + "\" alt=\"Company Logo\" />";
-            //    emailMessage.MessageBody += imageBase64Url;
-
-            //    response = new ComposeEmailServiceResponse(emailMessage);
-            //}
             await Task.CompletedTask;
         }
 
@@ -140,49 +110,6 @@ namespace Runtime.Extensions.TelstraEmailImage
                     responseStream.Close();
                 }
                 httpResponse.Close();
-            }
-            catch (Exception)
-            {
-                buf = null;
-            }
-
-            return buf;
-        }
-
-        // Sync Mode
-        private  string ConvertImageURLToBase64(string url)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            byte[] bytes = GetImage(url);
-
-            sb.Append(Convert.ToBase64String(bytes, 0, bytes.Length));
-
-            return sb.ToString();
-        }
-
-        private  byte[] GetImage(string url)
-        {
-            Stream stream = null;
-            byte[] buf;
-
-            try
-            {
-                WebProxy myProxy = new WebProxy();
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
-
-                HttpWebResponse response = (HttpWebResponse)req.GetResponse();
-                stream = response.GetResponseStream();
-
-                using (BinaryReader br = new BinaryReader(stream))
-                {
-                    int len = (int)response.ContentLength;
-                    buf = br.ReadBytes(len);
-                    br.Close();
-                }
-
-                stream.Close();
-                response.Close();
             }
             catch (Exception)
             {
