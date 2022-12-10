@@ -32,7 +32,7 @@ internal final class ProductTemplateDecompress
                 textBuffer.appendText(strFmt("%1,", "ProductDimensionGroupRecId"));
                 textBuffer.appendText(strFmt("%1,", "EcoResProductDimensionGroupProduct"));
                 textBuffer.appendText(strFmt("%1,", "ProductMasterName"));
-                textBuffer.appendText(strFmt("%1",  "ProductDimensionGroupName"));
+                textBuffer.appendText(strFmt("%1,",  "ProductDimensionGroupName"));
                 textBuffer.appendText(strFmt("%1",  "Is Product Dimension Group Missing"));
                 textBuffer.appendText("\n");
             }
@@ -101,7 +101,7 @@ internal final class ProductTemplateDecompress
                     textBuffer.appendText(strFmt("%1,", ""));
                 }
 
-                textBuffer.appendText(strFmt("%1", EcoResProductMaster::exist(productRecId) && !productDimensionGroupId ? "YES" :""));
+                textBuffer.appendText(strFmt("%1", EcoResProductMaster::exist(productRecId) && !productDimensionGroupId ? "YES" :"NO"));
 
                 textBuffer.appendText("\n");
             }
