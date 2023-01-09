@@ -24,5 +24,6 @@ There are 2 ways provided in this solution, only one way provided is download th
 5.  Open the excel,  you will find each product template and its product dimension group like below:
 ![image](https://user-images.githubusercontent.com/14832260/206841399-0582aae0-9bb2-49df-8642-1620932a9cc1.png)
 
-6. How to open the existing product template  &mi=SysRecordTemplateTable
+6. How to open the existing product template?
+     &mi=SysRecordTemplateTable
 
