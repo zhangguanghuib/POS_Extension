@@ -10,7 +10,8 @@ There are 2 ways provided in this solution, only one way provided is download th
 ![image](https://user-images.githubusercontent.com/14832260/211244481-4ac67298-c161-48d7-ac38-34830864d363.png)
 
 2. Update the below section of code it the table id does not match:
-![image](https://user-images.githubusercontent.com/14832260/211244626-be38addc-5767-47e3-b232-740bb2215ce9.png)
+
+![image](https://user-images.githubusercontent.com/14832260/211245703-61311952-dd94-4f01-978b-5e5ab2cd6685.png)
 
 3. Open the url below to run the job:
 
