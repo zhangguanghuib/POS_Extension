@@ -13,27 +13,29 @@ internal final class ProductTemplateDecompress
 
     public void run()
     {
-        TextBuffer textBuffer;
-        TableName tableName = tableId2Name(8649);
-        SysRecordTemplateTable sysRecordTemplateTable = SysRecordTemplateTable::find(8649);
+        TextBuffer  textBuffer = new TextBuffer();
+        TableName tableName = tableId2Name(3929);
+        SysRecordTemplateTable sysRecordTemplateTable; //= SysRecordTemplateTable::find(3929);
+
+        select sysRecordTemplateTable where  sysRecordTemplateTable.table ==  3929 &&  sysRecordTemplateTable.DataAreaId == curExt();
         
         if(sysRecordTemplateTable.RecId)
         {
             container data = sysRecordTemplateTable.Data;
 
             if(conlen(data) > 0)
-            {
-                textBuffer = new TextBuffer();
+            {             
                 // Add column header
-                textBuffer.appendText(strFmt("%1,", "Product Template"));
+                textBuffer.appendText(strFmt("%1,", "Product Template Name"));
                 textBuffer.appendText(strFmt("%1,", "ItemId"));
-                textBuffer.appendText(strFmt("%1,", "Has ProductMaster"));
                 textBuffer.appendText(strFmt("%1,", "ProductId"));
-                textBuffer.appendText(strFmt("%1,", "ProductDimensionGroupRecId"));
-                textBuffer.appendText(strFmt("%1,", "EcoResProductDimensionGroupProduct"));
-                textBuffer.appendText(strFmt("%1,", "ProductMasterName"));
-                textBuffer.appendText(strFmt("%1,",  "ProductDimensionGroupName"));
-                textBuffer.appendText(strFmt("%1",  "Is Product Dimension Group Missing"));
+                textBuffer.appendText(strFmt("%1,", "Has ProductMaster"));
+                textBuffer.appendText(strFmt("%1,", "ProductMaster"));
+
+                textBuffer.appendText(strFmt("%1,", "ProductID_EcoResProductDimensionGroupProduct"));
+                textBuffer.appendText(strFmt("%1,", "Product_Dimension_Group_RecId"));
+                textBuffer.appendText(strFmt("%1,", "Product_Dimension_Group_Name"));
+                //textBuffer.appendText(strFmt("%1",  "Is Product Dimension Group Missing"));
                 textBuffer.appendText("\n");
             }
 
@@ -49,60 +51,68 @@ internal final class ProductTemplateDecompress
 
                 ItemIdBase itemId = conPeek(conPeek(conPeek(inventTableContainer, 2), 1), 2);
                 //Item Id:
-                textBuffer.appendText(strFmt("%1,", '_'+itemId));
-
-                //Product Master YES:NO
-                RecId productRecId = conPeek(conPeek(conPeek(inventTableContainer, 2), 89), 2);
-                EcoResProductMaster productMaster =  EcoResProductMaster::find(productRecId);
-                textBuffer.appendText(strFmt("%1,", EcoResProductMaster::exist(productRecId) ? "YES": "NO"));
-
-                int j = conLen(tmp.Data);
-                container productDimensionCon = conPeek(tmp.Data, j);
-
-                str dataSourceName = conPeek(productDimensionCon, 1);
-                str product     = conPeek(conPeek(conPeek(productDimensionCon, 2),1), 1);
-                RecId productId = conPeek(conPeek(conPeek(productDimensionCon, 2),1), 2);
-
-                // Product Id
+                textBuffer.appendText(strFmt("%1,", ''+itemId));
+                
+                //Product Id
+                RecId productId = conPeek(conPeek(conPeek(inventTableContainer, 2), 89), 2);
                 textBuffer.appendText(strFmt("%1,", productId));
 
-                str productDimensionGroup     = conPeek(conPeek(conPeek(productDimensionCon, 2),2), 1);
-                RecId productDimensionGroupId = conPeek(conPeek(conPeek(productDimensionCon, 2),2), 2);
-                // Product Dimension Group RecId
-                textBuffer.appendText(strFmt("%1,", productDimensionGroupId));
-
-                EcoResProductDimensionGroupProduct  ecoResProductDimensionGroupProduct;
-                EcoResProductMaster                 ecoResProductMaster;
-                EcoResProductDimensionGroup         ecoResProductDimensionGroup;
-
-                if (productId && productDimensionGroupId)
+                //Product Master YES:NO
+                EcoResProduct ecoResProduct = EcoResProduct::find(productId);
+                if (ecoResProduct is EcoResProductMaster)
                 {
-                    select firstonly ecoResProductDimensionGroupProduct
-                    where  ecoResProductDimensionGroupProduct.Product == productId
-                        && ecoResProductDimensionGroupProduct.ProductDimensionGroup == productDimensionGroupId;
-
-                    //EcoResProductDimensionGroupProduct RecId
-                    textBuffer.appendText(strFmt("%1,", ecoResProductDimensionGroupProduct.RecId));
-
-                    select ecoResProductMaster where ecoResProductMaster.RecId == productId;
-
-                    //Product Master Search Name
-                    textBuffer.appendText(strFmt("%1,", ecoResProductMaster.SearchName));
-
-                    select ecoResProductDimensionGroup where ecoResProductDimensionGroup.RecId == productDimensionGroupId;
-
-                    // Product Dimension Group Name
-                    textBuffer.appendText(strFmt("%1,", ecoResProductDimensionGroup.Name));
+                    textBuffer.appendText(strFmt("%1,", "YES"));
+                    EcoResProductMaster ecoResProductMaster = EcoResProductMaster::find(productId);
+                    textBuffer.appendText(strFmt("%1,", ecoResProductMaster.DisplayProductNumber));
                 }
                 else
                 {
-                    textBuffer.appendText(strFmt("%1,", ""));
-                    textBuffer.appendText(strFmt("%1,", ""));
+                    textBuffer.appendText(strFmt("%1,", "NO"));
                     textBuffer.appendText(strFmt("%1,", ""));
                 }
 
-                textBuffer.appendText(strFmt("%1", EcoResProductMaster::exist(productRecId) && !productDimensionGroupId ? "YES" :"NO"));
+                //int j = conLen(tmp.Data);
+                for(int j=conLen(tmp.Data); j>1; j--)
+                {
+                    container productDimensionCon = conPeek(tmp.Data, j);
 
+                    str dataSourceName = conPeek(productDimensionCon, 1);
+                    if (dataSourceName == "EcoResProductDimensionGroupProduct")
+                    {
+                        RecId group_productId = 0;
+                        if (conLen(productDimensionCon) == 2 && conLen(conPeek(productDimensionCon, 2)) == 2)
+                        {
+                            // ProductID in EcoResProductDimensionGroupProduct
+                           
+                            if (conPeek(conPeek(conPeek(productDimensionCon, 2),1), 1) == "Product")
+                            {
+                                group_productId = conPeek(conPeek(conPeek(productDimensionCon, 2),1), 2);
+                            }
+
+                            textBuffer.appendText(strFmt("%1,", group_productId));
+
+                            //Product Dimension  group RecId
+                            RecId productDimensionGroupRecId = 0;
+                            if (conPeek(conPeek(conPeek(productDimensionCon, 2),2), 1) == "ProductDimensionGroup")
+                            {
+                                productDimensionGroupRecId = conPeek(conPeek(conPeek(productDimensionCon, 2),2), 2);
+                            }
+                            textBuffer.appendText(strFmt("%1,", productDimensionGroupRecId));
+
+                            //Product Dimension  group Name
+                            EcoResProductDimensionGroup ecoResProductDimensionGroup = EcoResProductDimensionGroup::find(productDimensionGroupRecId);
+                            textBuffer.appendText(strFmt("%1,", ecoResProductDimensionGroup.Name));
+                        }
+                        else
+                        {
+                            textBuffer.appendText(strFmt("%1,", ''));
+                            textBuffer.appendText(strFmt("%1,", ''));
+                            textBuffer.appendText(strFmt("%1,", ''));
+                        }
+                        break;
+                        //textBuffer.appendText(strFmt("%1", EcoResProductMaster::exist(productRecId) && !productDimensionGroupId ? "YES" :"NO"));
+                    }
+                }
                 textBuffer.appendText("\n");
             }
         }
