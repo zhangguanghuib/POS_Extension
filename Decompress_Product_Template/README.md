@@ -6,14 +6,20 @@ There are 2 ways provided in this solution, only one way provided is download th
 
 # How to use this solution
 
-1. Open the url below to run the job:
+1. Open your SQL  Server to check what table it is:
+![image](https://user-images.githubusercontent.com/14832260/211244481-4ac67298-c161-48d7-ac38-34830864d363.png)
+
+2. Update the below section of code it the table id does not match:
+![image](https://user-images.githubusercontent.com/14832260/211244626-be38addc-5767-47e3-b232-740bb2215ce9.png)
+
+3. Open the url below to run the job:
 
 &mi=Sysclassrunner&cls=ProductTemplateDecompress
 
-2. Browser will pop-up a window to download a CSV  file
+4. Browser will pop-up a window to download a CSV  file
 
 ![image](https://user-images.githubusercontent.com/14832260/206841065-e2045f19-ce67-4664-8bce-f0935dac8c19.png)
 
-3.  Open the excel,  you will find each product template and its product dimension group like below:
+5.  Open the excel,  you will find each product template and its product dimension group like below:
 ![image](https://user-images.githubusercontent.com/14832260/206841399-0582aae0-9bb2-49df-8642-1620932a9cc1.png)
 
