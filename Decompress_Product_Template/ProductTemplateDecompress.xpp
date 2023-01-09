@@ -14,10 +14,10 @@ internal final class ProductTemplateDecompress
     public void run()
     {
         TextBuffer  textBuffer = new TextBuffer();
-        TableName tableName = tableId2Name(3929);
-        SysRecordTemplateTable sysRecordTemplateTable; //= SysRecordTemplateTable::find(3929);
+        TableId   inventTableId = tableNum(InventTable);
+        SysRecordTemplateTable sysRecordTemplateTable; //= SysRecordTemplateTable::find(tableNum(InventTable));
 
-        select sysRecordTemplateTable where  sysRecordTemplateTable.table ==  3929 &&  sysRecordTemplateTable.DataAreaId == curExt();
+        select sysRecordTemplateTable where  sysRecordTemplateTable.table ==  tableNum(InventTable) &&  sysRecordTemplateTable.DataAreaId == curExt();
         
         if(sysRecordTemplateTable.RecId)
         {
