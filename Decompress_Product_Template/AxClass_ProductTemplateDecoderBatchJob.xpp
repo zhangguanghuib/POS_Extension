@@ -1,0 +1,277 @@
+﻿using Microsoft.Dynamics.ApplicationPlatform.Services.Instrumentation;
+using Microsoft.DynamicsOnline.Infrastructure.Components.SharedServiceUnitStorage;
+using Microsoft.Dynamics.AX.Framework.FileManagement;
+
+class ProductTemplateDecoderBatchJob extends RunBaseBatch implements BatchRetryable
+{
+    public boolean mustGoBatch()
+    {
+        return false;
+    }
+
+    public void run()
+    {
+        System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+        stopWatch.Start();
+
+        boolean isSuccess = false;
+
+        try
+        {
+            this.runInternal();
+            isSuccess = true;
+        }
+        finally
+        {
+            stopWatch.Stop();
+        }
+    }
+
+    public static ClassDescription description()
+    {
+        return "Product Template Decoder";   // "Process delivery modes job"
+    }
+
+    public static void main(Args _args)
+    {
+        ProductTemplateDecoderBatchJob scheduler = new ProductTemplateDecoderBatchJob();
+
+        if (scheduler.prompt())
+        {
+            scheduler.runOperation();
+        }
+    }
+
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+    [Hookable(false)]
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+    private str generateUniqueFileName()
+    {
+        System.DateTimeOffset timeNow = System.DateTimeOffset::Now;
+        str fileName  = strFmt("%1%2%3.csv", timeNow.Year, timeNow.Month, timeNow.Day);
+        fileName = guid2StrWithoutBraces(newGuid()) + "_" + fileName;
+        return fileName;
+    }
+
+    public str writeContentToCSV(TextBuffer fileContent)
+    {
+        str filePath = System.IO.Path::GetTempPath();
+        str _fileName = this.generateUniqueFileName();
+        str filePathAndName = System.IO.Path::Combine(System.IO.Path::GetTempPath(), _fileName);
+       
+        try
+        {
+            if (fileContent.toFile(filePathAndName))
+            {
+                return _fileName;
+            }
+        }
+        catch(Exception::Error)
+        {
+            retry;
+        }
+        return "";
+    }
+
+    public str uploadCSVToAzureBlob(str _fileName)
+    {
+        str _filePathAndName = System.IO.Path::Combine(System.IO.Path::GetTempPath(), _fileName);
+        System.IO.Stream  _stream = File::UseFileFromURL(_filePathAndName);
+        var blobInfo = new SharedServiceUnitStorageData();
+        blobInfo.Id = guid2StrWithoutBraces(newGuid())+".csv";
+        blobInfo.Category = "AzureStorage";//Folder name
+        blobInfo.Name = _fileName;
+        blobInfo.Accessibility = Accessibility::Private;
+        blobInfo.Retention = Retention::Permanent;
+       
+        if (_stream.CanSeek)
+        {
+            _stream.Seek(0, System.IO.SeekOrigin::Begin);
+        }
+        var blobStorageService = new SharedServiceUnitStorage(SharedServiceUnitStorage::GetDefaultStorageContext());
+        blobStorageService.UploadData(blobInfo, _stream);
+        var uploadedBlobInfo = blobStorageService.GetData(blobInfo.Id, "AzureStorage", BlobUrlPermission::Read, System.TimeSpan::FromDays(30));
+        //Time span To keep the file Azure.
+        str downloadUrl = uploadedBlobInfo.BlobLink;
+        return downloadUrl;
+    }
+
+    private void runInternal()
+    {
+        TextBuffer  textBuffer = new TextBuffer();
+        TableId   inventTableId = tableNum(InventTable);
+        SysRecordTemplateTable sysRecordTemplateTable; //= SysRecordTemplateTable::find(tableNum(InventTable));
+
+        select sysRecordTemplateTable where  sysRecordTemplateTable.table ==  tableNum(InventTable) &&  sysRecordTemplateTable.DataAreaId == curExt();
+        
+        if(sysRecordTemplateTable.RecId)
+        {
+            container data = sysRecordTemplateTable.Data;
+
+            if(conlen(data) > 0)
+            {
+                // Add column header
+                textBuffer.appendText(strFmt("%1,", "Product Template Name"));
+                textBuffer.appendText(strFmt("%1,", "ItemId"));
+                textBuffer.appendText(strFmt("%1,", "ProductId"));
+                textBuffer.appendText(strFmt("%1,", "Has ProductMaster"));
+                textBuffer.appendText(strFmt("%1,", "ProductMaster"));
+
+                textBuffer.appendText(strFmt("%1,", "ProductID_EcoResProductDimensionGroupProduct"));
+                textBuffer.appendText(strFmt("%1,", "Product_Dimension_Group_RecId"));
+                textBuffer.appendText(strFmt("%1,", "Product_Dimension_Group_Name"));
+                textBuffer.appendText(strFmt("%1",  "Is Product_Dimension_Group Missing"));
+                textBuffer.appendText("\n");
+            }
+
+            for (int i = conlen(data); i > 1; i--)
+            {
+                ItemIdBase itemId;
+                RecId productId;
+                EcoResProductDimensionGroup ecoResProductDimensionGroup = null;
+                boolean      ecoResProductDimensionGroupDataSourceFound = false;
+
+                SysRecordTmpTemplate         tmp;
+                [tmp.Description, tmp.DefaultRecord, tmp.Data, tmp.Details] = conpeek(data, i);
+
+                // Product Template Name
+                textBuffer.appendText(strFmt("%1,", tmp.Description));
+                //if(tmp.Description=="TemplateForShoulderPad")
+                //{
+                //    breakpoint;
+                //}
+
+                //if(tmp.Description=="TemplateForWoven" || tmp.Description=="Template_ActiveWear")
+                //{
+                //    breakpoint;
+                //}
+
+                for(int j = 1;  j<=conLen(tmp.Data); j++)
+                {
+                    container c = conPeek(tmp.Data, j);
+                    str dataSourceName = conPeek(c, 1);
+
+                    //container inventTableContainer = conPeek(tmp.data, 1);
+                    if(dataSourceName == tableStr(InventTable))
+                    {
+                        container inventTableContainer = c;
+                        for(int k = 1; k <= conLen(conPeek(inventTableContainer, 2)); ++k)
+                        {
+                            container inventTableChild = conPeek(conPeek(inventTableContainer, 2), k);
+
+                            //Item Id
+                            if (conPeek(inventTableChild, 1) == "ItemId")
+                            {
+                                itemId = conPeek(inventTableChild, 2);
+                                textBuffer.appendText(strFmt("%1,", ''+itemId));
+                                continue;
+                            }
+                            //Product Id
+                            if (conPeek(inventTableChild, 1) == "Product")
+                            {
+                                productId = conPeek(inventTableChild, 2);
+                                textBuffer.appendText(strFmt("%1,", productId));
+                                break;
+                            }
+                        }
+
+                        // No item id and product id, then add empty in place holder
+                        if(!itemId)
+                        {
+                            textBuffer.appendText(strFmt("%1,", ''));
+                        }
+
+                        if(!productId)
+                        {
+                            textBuffer.appendText(strFmt("%1,", ''));
+                        }
+
+                        //Product Master YES:NO
+                        EcoResProduct ecoResProduct = EcoResProduct::find(productId);
+                        if (ecoResProduct is EcoResProductMaster)
+                        {
+                            textBuffer.appendText(strFmt("%1,", "YES"));
+                            EcoResProductMaster ecoResProductMaster = EcoResProductMaster::find(productId);
+                            textBuffer.appendText(strFmt("%1,", ecoResProductMaster.DisplayProductNumber));
+                        }
+                        else
+                        {
+                            textBuffer.appendText(strFmt("%1,", "NO"));
+                            textBuffer.appendText(strFmt("%1,", ""));
+                        }
+                    }
+
+                    if (dataSourceName == "EcoResProductDimensionGroupProduct")
+                    {
+                        container productDimensionCon = c;
+                        ecoResProductDimensionGroupDataSourceFound = true;
+                        RecId group_productId = 0;
+                        if (conLen(productDimensionCon) == 2 && conLen(conPeek(productDimensionCon, 2)) == 2)
+                        {
+                            // ProductID in EcoResProductDimensionGroupProduct
+                            if (conPeek(conPeek(conPeek(productDimensionCon, 2),1), 1) == "Product")
+                            {
+                                group_productId = conPeek(conPeek(conPeek(productDimensionCon, 2),1), 2);
+                            }
+
+                            textBuffer.appendText(strFmt("%1,", ''+int642Str(group_productId)));
+
+                            //Product Dimension  group RecId
+                            RecId productDimensionGroupRecId = 0;
+                            if (conPeek(conPeek(conPeek(productDimensionCon, 2),2), 1) == "ProductDimensionGroup")
+                            {
+                                productDimensionGroupRecId = conPeek(conPeek(conPeek(productDimensionCon, 2),2), 2);
+                            }
+                            textBuffer.appendText(strFmt("%1,", ''+int642Str(productDimensionGroupRecId)));
+
+                            //Product Dimension  group Name
+                            ecoResProductDimensionGroup = EcoResProductDimensionGroup::find(productDimensionGroupRecId);
+                            textBuffer.appendText(strFmt("%1,", ecoResProductDimensionGroup.Name));
+                        }
+                        else
+                        {
+                            textBuffer.appendText(strFmt("%1,", '0'));
+                            textBuffer.appendText(strFmt("%1,", '0'));
+                            textBuffer.appendText(strFmt("%1,", ''));
+                        }
+                        break;
+                    }
+                }
+
+                // For each product template, add more blank if dimension group not found
+                if(!ecoResProductDimensionGroupDataSourceFound)
+                {
+                    textBuffer.appendText(strFmt("%1,", '0'));
+                    textBuffer.appendText(strFmt("%1,", '0'));
+                    textBuffer.appendText(strFmt("%1,", ''));
+                }
+
+                // If this product has product master but Product Dimension Group is empty,  then shows missing.
+                textBuffer.appendText(strFmt("%1", EcoResProductMaster::exist(productId) && !ecoResProductDimensionGroup.RecId ? "YES" :"NO"));
+                textBuffer.appendText("\n");
+            }
+        }
+
+        if(textBuffer.getText())
+        {
+            str fileName = this.writeContentToCSV(textBuffer);
+            str blobLink = this.uploadCSVToAzureBlob(fileName);
+
+            if (blobLink)
+            {
+                System.IO.Stream stream = File::UseFileFromURL(blobLink);
+                //File::SendFileToUser(stream, guid2StrWithoutBraces(newGuid())+".csv");
+                File::SendFileToUser(stream, fileName);
+            }
+        }
+    }
+
+}
