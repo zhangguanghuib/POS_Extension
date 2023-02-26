@@ -1,29 +1,16 @@
 # Project Title
 
-This feature is implemented for some customer/partner who want to check HQ table data.
+How this batch job works:
 
-There are 2 ways provided in this solution, only one way provided is download the data into CSV file.
+1. Open the menu item:
+![image](https://user-images.githubusercontent.com/14832260/221414010-7609479d-ffb7-4e8b-8320-7535aba9d70b.png)
 
-# How to use this solution
+2. Click OK  button on the dialog:
+  ![image](https://user-images.githubusercontent.com/14832260/221414133-955abeab-0ebc-44f7-af2b-d52230b2ff3f.png)
 
-1. Open your SQL  Server to check what table it is:
-![image](https://user-images.githubusercontent.com/14832260/211244481-4ac67298-c161-48d7-ac38-34830864d363.png)
 
-2. Update the below section of code it the table id does not match:
+3.  You will the see the popup message to see an excel shift need download:
+4.  ![image](https://user-images.githubusercontent.com/14832260/221414207-d1307293-854f-4bbb-8e07-f32bb6cc7936.png)
 
-![image](https://user-images.githubusercontent.com/14832260/211245703-61311952-dd94-4f01-978b-5e5ab2cd6685.png)
 
-3. Open the url below to run the job:
-
-&mi=Sysclassrunner&cls=ProductTemplateDecompress
-
-4. Browser will pop-up a window to download a CSV  file
-
-![image](https://user-images.githubusercontent.com/14832260/206841065-e2045f19-ce67-4664-8bce-f0935dac8c19.png)
-
-5.  Open the excel,  you will find each product template and its product dimension group like below:
-![image](https://user-images.githubusercontent.com/14832260/206841399-0582aae0-9bb2-49df-8642-1620932a9cc1.png)
-
-6. How to open the existing product template?
-     &mi=SysRecordTemplateTable
 
